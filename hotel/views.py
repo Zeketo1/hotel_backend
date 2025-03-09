@@ -61,6 +61,14 @@ class ApproveBookingView(generics.UpdateAPIView):
     def perform_update(self, serializer):
         serializer.save(status='approved')
 
+class RejectBookingView(generics.UpdateAPIView):
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def perform_update(self, serializer):
+        serializer.save(status='canceled')
+
 # -------------------------------------------------
 # Authentication Views (Add these)
 # -------------------------------------------------

@@ -21,12 +21,13 @@ class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = ['id', 'user', 'room', 'check_in', 'check_out', 'status', 'created_at']
-        read_only_fields = ['user', 'status']  # User is auto-set; status defaults to "pending"
+        read_only_fields = ['user', 'status', 'created_at']  # User is auto-set; status defaults to "pending"
 
     def validate(self, data):
         # Ensure check_out is after check_in
-        if data['check_in'] >= data['check_out']:
-            raise serializers.ValidationError("Check-out date must be after check-in date.")
+        if 'check_in' in data and 'check_out' in data:
+            if data['check_in'] >= data['check_out']:
+                raise serializers.ValidationError("Check-out date must be after check-in date.")
         return data
 
 # --------------------------

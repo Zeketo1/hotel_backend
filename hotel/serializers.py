@@ -45,13 +45,13 @@ class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
-    # Add this method
     def validate(self, data):
         email = data.get('email')
         password = data.get('password')
+        request = self.context.get('request')
 
         if email and password:
-            user = authenticate(request=self.context.get('request'), email=email, password=password)
+            user = authenticate(request=request, email=email, password=password)
             if not user:
                 raise serializers.ValidationError("Invalid credentials.")
         else:

@@ -59,6 +59,11 @@ CORS_ALLOWED_ORIGINS = [
 
 AUTH_USER_MODEL = 'hotel.CustomUser'
 
+AUTHENTICATION_BACKENDS = [
+    'hotel.backends.EmailBackend',  # Use email for auth
+    'django.contrib.auth.backends.ModelBackend',  # Fallback
+]
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',

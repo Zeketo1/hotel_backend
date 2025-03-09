@@ -21,16 +21,45 @@ class RoomList(generics.ListCreateAPIView):
     serializer_class = RoomSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-class BookingCreate(generics.CreateAPIView):
+class BookingCreateView(generics.CreateAPIView):
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-class UserListView(generics.ListAPIView):
-    queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer
+class UserBookingListView(generics.ListAPIView):
+    serializer_class = BookingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Return bookings for the logged-in user
+        return Booking.objects.filter(user=self.request.user)
+
+class CancelBookingView(generics.UpdateAPIView):
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_update(self, serializer):
+        # Allow users to cancel their own bookings
+        serializer.save(status='canceled')
+
+# -------------------------------------------------
+# Existing Views (Admin)
+# -------------------------------------------------
+class AdminBookingListView(generics.ListAPIView):
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+class ApproveBookingView(generics.UpdateAPIView):
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def perform_update(self, serializer):
+        serializer.save(status='approved')
 
 # -------------------------------------------------
 # Authentication Views (Add these)
@@ -47,23 +76,6 @@ class UserRegistrationView(APIView):
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# class UserLoginView(APIView):
-#     def post(self, request):
-#         serializer = UserLoginSerializer(data=request.data)
-#         if serializer.is_valid():
-#             email = serializer.validated_data["email"]
-#             password = serializer.validated_data["password"]
-#             user = authenticate(request, email=email, password=password)
-            
-#             if user:
-#                 refresh = RefreshToken.for_user(user)
-#                 return Response({
-#                     "access": str(refresh.access_token),
-#                     "refresh": str(refresh),
-#                 }, status=status.HTTP_200_OK)
-#             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 class UserLoginView(APIView):
     def post(self, request):
         # Pass request context to serializer

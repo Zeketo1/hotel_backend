@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django_rest_passwordreset',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -63,6 +64,13 @@ AUTHENTICATION_BACKENDS = [
     'hotel.backends.EmailBackend',  # Use email for auth
     'django.contrib.auth.backends.ModelBackend',  # Fallback
 ]
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'ikorofrancis24@gmail.com'  # Replace with your Gmail
+EMAIL_HOST_PASSWORD = 'pjzp zzyc dqth wikb'  # Use an app password, not your Gmail password
 
 from datetime import timedelta
 

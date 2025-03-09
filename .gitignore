@@ -1,0 +1,9 @@
+# .gitignore
+.env
+*.pyc
+__pycache__/
+*.sqlite3
+venv/
+.env/
+.venv/
+.vscode/   # VS Code

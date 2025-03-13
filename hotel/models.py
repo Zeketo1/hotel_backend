@@ -7,6 +7,8 @@ from django.db import models
 from django.utils import timezone
 from django.db.models import Q
 
+from .validators import validate_image_url
+
 class CustomUser(AbstractUser):
     # Add email field with unique=True (overrides AbstractUser's email)
     email = models.EmailField(unique=True, verbose_name='email address')  # <-- Add this line
@@ -42,6 +44,7 @@ class Room(models.Model):
     description = models.TextField()
     is_available = models.BooleanField(default=True)
     max_guests = models.PositiveIntegerField(default=2)  # New field
+    image_url = models.URLField(max_length=500, validators=[validate_image_url])
     image = models.ImageField(upload_to='rooms/', null=True, blank=True)  # New field
 
     @property

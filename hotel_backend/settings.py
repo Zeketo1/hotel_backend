@@ -43,7 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     'rest_framework',          # Add this
+    'rest_framework_simplejwt',
     'corsheaders',              # Add this
     'hotel',                    # Add your app
 ]
@@ -60,8 +62,12 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:5500",  # Your frontend origin
+    "http://localhost:5500",   # Common alternative
     "http://localhost:3000",  # React’s default port
 ]
+
+CORS_ALLOW_CREDENTIALS = True
 
 AUTH_USER_MODEL = 'hotel.CustomUser'
 
@@ -79,7 +85,7 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),  # Extend to 1 hour
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Extend to 1 hour
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
@@ -94,7 +100,7 @@ ROOT_URLCONF = 'hotel_backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -106,6 +112,10 @@ TEMPLATES = [
         },
     },
 ]
+
+DJANGO_REST_PASSWORDRESET = {
+    "PASSWORD_RESET_EMAIL_TEMPLATE": "email/password_reset_email.html",
+}
 
 WSGI_APPLICATION = 'hotel_backend.wsgi.application'
 

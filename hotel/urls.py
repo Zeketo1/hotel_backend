@@ -10,7 +10,8 @@ from .views import (
     CancelBookingView,
     AdminBookingListView,
     ApproveBookingView,
-    RejectBookingView
+    RejectBookingView,
+    UserProfileView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -34,6 +35,7 @@ urlpatterns = [
     path('admin/bookings/reject/<int:pk>/', RejectBookingView.as_view(), name='reject-booking'),
 
     # Existing Endpoints
+    path('user/', UserProfileView.as_view(), name='user-profile'),
     path('users/', UserBookingListView.as_view(), name='user-list'),
     path('rooms/', RoomList.as_view(), name='room-list'),
     path('bookings/', BookingCreateView.as_view(), name='booking-create'),

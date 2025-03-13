@@ -19,8 +19,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include([
-        path('', include('hotel.urls')),  # hotel app routes
-        path('password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),  # Under /api/
-    ])),
+    path('api/', include('hotel.urls')),  # Directly include hotel.urls under /api/
+    path('api/password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
 ]

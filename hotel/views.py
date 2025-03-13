@@ -12,6 +12,8 @@ from .serializers import (
     UserRegistrationSerializer,
     UserLoginSerializer
 )
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 # -------------------------------------------------
 # Existing Views (Rooms, Bookings, Users)
@@ -19,14 +21,21 @@ from .serializers import (
 class RoomList(generics.ListCreateAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAdminUser]  # Only admins can create rooms
 
 class BookingCreateView(generics.CreateAPIView):
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        # Get room ID from request data
+        room_id = self.request.data.get('room')
+        room = Room.objects.get(id=room_id)
+        
+        serializer.save(
+            user=self.request.user,
+            room=room
+        )
 
 class UserBookingListView(generics.ListAPIView):
     serializer_class = BookingSerializer
@@ -34,7 +43,9 @@ class UserBookingListView(generics.ListAPIView):
 
     def get_queryset(self):
         # Return bookings for the logged-in user
-        return Booking.objects.filter(user=self.request.user)
+        return Booking.objects.filter(user=self.request.user)\
+                             .select_related('room')\
+                             .order_by('-created_at')
 
 class CancelBookingView(generics.UpdateAPIView):
     queryset = Booking.objects.all()
@@ -102,3 +113,12 @@ class UserLoginView(APIView):
         
         # Return validation errors if serializer is invalid
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]  # Make sure you import this
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)

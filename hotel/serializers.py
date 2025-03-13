@@ -9,25 +9,55 @@ from .models import CustomUser, Room, Booking
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'role']
+        fields = ['id', 'username', 'email', 'phone', 'role']
 
 class RoomSerializer(serializers.ModelSerializer):
     is_available = serializers.BooleanField(read_only=True)  # Computed field
     class Meta:
         model = Room
         fields = '__all__'
+        extra_kwargs = {
+            'image_url': {'required': True}  # Make URL mandatory
+        }
 
 class BookingSerializer(serializers.ModelSerializer):
+    # For writing/input: Accept room ID
+    room = serializers.PrimaryKeyRelatedField(
+        queryset=Room.objects.all(),
+        write_only=True
+    )
+    
+    # For reading/output: Show full room details
+    room_detail = RoomSerializer(source='room', read_only=True)
+
     class Meta:
         model = Booking
-        fields = ['id', 'user', 'room', 'check_in', 'check_out', 'status', 'created_at']
-        read_only_fields = ['user', 'status', 'created_at']  # User is auto-set; status defaults to "pending"
+        fields = [
+            'id', 
+            'user', 
+            'room',          # For input (write)
+            'room_detail',   # For output (read)
+            'check_in', 
+            'check_out', 
+            'status', 
+            'created_at'
+        ]
+        read_only_fields = ['user', 'status', 'created_at', 'room_detail']
 
     def validate(self, data):
-        # Ensure check_out is after check_in
-        if 'check_in' in data and 'check_out' in data:
-            if data['check_in'] >= data['check_out']:
-                raise serializers.ValidationError("Check-out date must be after check-in date.")
+        # Existing date validation
+        if data['check_in'] >= data['check_out']:
+            raise serializers.ValidationError(
+                "Check-out date must be after check-in date."
+            )
+        
+        # Add room availability check
+        room = data['room']
+        if not room.is_available:
+            raise serializers.ValidationError(
+                "This room is not available for the selected dates"
+            )
+            
         return data
 
 # --------------------------

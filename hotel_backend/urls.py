@@ -16,8 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import HttpResponse
+
+
+def home(request):
+    return HttpResponse("Welcome to the Hotel Backend!")
 
 urlpatterns = [
+    path('', home),
     path('admin/', admin.site.urls),
     path('api/', include('hotel.urls')),  # Directly include hotel.urls under /api/
     path('api/password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),

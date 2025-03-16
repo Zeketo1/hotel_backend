@@ -92,6 +92,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React’s default port
 ]
 
+PORT = os.getenv("PORT", "8000")
+
 CORS_ALLOW_CREDENTIALS = True
 
 AUTH_USER_MODEL = 'hotel.CustomUser'

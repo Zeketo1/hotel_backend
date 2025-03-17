@@ -17,7 +17,8 @@ from .views import (
     UpdateRoomView,
     DeleteRoomView,
     PasswordResetView, 
-    PasswordResetConfirmView
+    PasswordResetConfirmView,
+    UserProfileUpdateView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -25,8 +26,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
      # JWT Token Endpoints
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     # Authentication Endpoints
     path('register/', UserRegistrationView.as_view(), name='user-register'),
@@ -38,6 +39,7 @@ urlpatterns = [
     path('bookings/create/', BookingCreateView.as_view(), name='booking-create'),
     path('bookings/my-bookings/', UserBookingListView.as_view(), name='user-bookings'),
     path('bookings/cancel/<int:pk>/', CancelBookingView.as_view(), name='cancel-booking'),
+    path('user/profile/update/', UserProfileUpdateView.as_view(), name='profile-update'),
 
     # Admin Booking endpoints
     path('admin/bookings/', AdminBookingListView.as_view(), name='admin-bookings'),

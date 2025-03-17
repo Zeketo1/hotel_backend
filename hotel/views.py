@@ -249,79 +249,86 @@ class PasswordResetView(APIView):
 
     def send_reset_email(self, user):
         try:
-            # Generate reset token
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            # Generate reset token only (no uid needed)
             token = token_generator.make_token(user)
 
-            # Debug: Print template paths
-            template_dir = os.path.join(settings.BASE_DIR, 'hotel', 'templates', 'registration')
-            print(f"Template directory: {template_dir}")
-            print(f"HTML template exists: {os.path.exists(os.path.join(template_dir, 'password_reset_email.html'))}")
-            print(f"Text template exists: {os.path.exists(os.path.join(template_dir, 'password_reset_email.txt'))}")
-
-            # Prepare email context
+            # Prepare simplified email context
             context = {
                 'user': user,
-                'uid': uid,
                 'token': token,
-                'protocol': 'http',  # Use HTTP for local testing
-                'domain': 'localhost:8000',  # Local development domain
             }
 
-            # Debug: Print context
-            print(f"Email context: {context}")
+            # Initialize messages with fallback values
+            html_message = None
+            plain_message = None
 
-            # Render email templates
+            # Render text template first
+            try:
+                plain_message = render_to_string('registration/password_reset_email.txt', context)
+                print("Text template rendered successfully")
+            except Exception as e:
+                print(f"Error rendering text template: {e}")
+                raise
+
+            # Attempt HTML template only if needed
             try:
                 html_message = render_to_string('registration/password_reset_email.html', context)
                 print("HTML template rendered successfully")
             except Exception as e:
                 print(f"Error rendering HTML template: {e}")
 
-            try:
-                plain_message = render_to_string('registration/password_reset_email.txt', context)
-                print("Text template rendered successfully")
-            except Exception as e:
-                print(f"Error rendering text template: {e}")
-                raise  # Re-raise the exception to see the full traceback
-
-            # Send email
+            # Send email with fallback to text-only
             send_mail(
                 "Password Reset Request",
                 plain_message,
-                None,  # Uses DEFAULT_FROM_EMAIL in settings
+                None,
                 [user.email],
-                html_message=html_message,
+                html_message=html_message,  # Safe to pass None
             )
-        except TemplateDoesNotExist as e:
-            print(f"Template error: {e}")
-            return Response({"detail": "Email template not found"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         except Exception as e:
             print(f"Error sending email: {e}")
             return Response({"detail": "Failed to send reset email"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class PasswordResetConfirmView(APIView):
-    def post(self, request, uidb64, token):  # Add URL parameters
-        serializer = PasswordResetConfirmSerializer(data={
-            'password': request.data.get('password')
-        })
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
         
-        if serializer.is_valid():
-            try:
-                # Decode user ID
-                user_id = force_str(urlsafe_base64_decode(uidb64))
-                user = User.objects.get(pk=user_id)
-                
-                # Verify token
-                if not PasswordResetTokenGenerator().check_token(user, token):
-                    return Response({"detail": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
-                
-                # Update password
-                user.set_password(serializer.validated_data['password'])
-                user.save()
-                return Response({"detail": "Password reset successful"}, status=status.HTTP_200_OK)
-                
-            except (User.DoesNotExist, ValueError, OverflowError, TypeError):
-                return Response({"detail": "Invalid user"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data['email']
+        token = serializer.validated_data['token']
+        new_password = serializer.validated_data['new_password']
+
+        try:
+            user = User.objects.get(email=email)
+            
+            if not token_generator.check_token(user, token):
+                return Response(
+                    {"detail": "Invalid or expired token"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Validate password strength here if needed
+            user.set_password(new_password)
+            user.save()
+            
+            # Optional: Invalidate existing user sessions
+            # user.auth_token_set.all().delete()
+            
+            return Response(
+                {"detail": "Password successfully reset"},
+                status=status.HTTP_200_OK
+            )
+            
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "No user found with this email address"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"detail": "Server error: {}".format(str(e))},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

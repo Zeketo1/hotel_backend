@@ -3,6 +3,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
 from .models import CustomUser, Room, Booking, Service
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 
 # --------------------------
 # General Model Serializers (for User, Room, Booking)
@@ -26,9 +27,13 @@ User = get_user_model()
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
+def validate_password_strength(value):
+    if len(value) < 8:
+        raise ValidationError("Password must be at least 8 characters long.")
 class PasswordResetConfirmSerializer(serializers.Serializer):
+    email = serializers.EmailField()
     token = serializers.CharField()
-    password = serializers.CharField(min_length=8)
+    new_password = serializers.CharField(min_length=8, validators=[validate_password_strength], style={'input_type': 'password'})
 
 class BookingStatusSerializer(serializers.ModelSerializer):
     class Meta:

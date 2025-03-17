@@ -33,7 +33,7 @@ urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='user-register'),
     path('login/', UserLoginView.as_view(), name='user-login'),
     path('auth/password/reset/', PasswordResetView.as_view(), name='password_reset'),
-    path('auth/password/reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('auth/password/reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
     # User Booking endpoints
     path('bookings/create/', BookingCreateView.as_view(), name='booking-create'),

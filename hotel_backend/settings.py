@@ -90,6 +90,7 @@ CORS_ALLOW_HEADERS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
+    "https://moonlit-tau.vercel.app",
     "http://127.0.0.1:5500",  # Your frontend origin
     "http://localhost:5500",   # Common alternative
     "http://localhost:3000",  # React’s default port

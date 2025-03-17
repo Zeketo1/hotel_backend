@@ -90,8 +90,21 @@ class CancelBookingView(generics.UpdateAPIView):
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    # Allow DELETE requests in addition to PUT/PATCH
+    http_method_names = ['put', 'patch', 'delete']
+
+    def delete(self, request, *args, **kwargs):
+        # Fetch the booking instance
+        instance = self.get_object()
+        
+        # Update the status to "canceled" without validation
+        instance.status = 'canceled'
+        instance.save()
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     def perform_update(self, serializer):
-        # Allow users to cancel their own bookings
+        # For PUT/PATCH requests, update the status to "canceled"
         serializer.save(status='canceled')
 
 # -------------------------------------------------

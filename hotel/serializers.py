@@ -69,6 +69,10 @@ class BookingSerializer(serializers.ModelSerializer):
         read_only_fields = ['user', 'status', 'created_at', 'room_detail']
 
     def validate(self, data):
+        # Skip validation if check_in and check_out are not provided
+        if 'check_in' not in data or 'check_out' not in data:
+            return data
+        
         # Date validation
         if data['check_in'] >= data['check_out']:
             raise serializers.ValidationError(
